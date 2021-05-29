@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div id=stat-box>
+        <div id="ram-box" class="box">
+            <canvas id="ramChart" width="400" height="400"></canvas>
+        </div>
+        <div id="disk-box" class="box">
+            <canvas id="diskChart"></canvas>
+        </div>
+        <div class="box">
+            <canvas id="sdChart"></canvas>
+        </div>
+    </div>
+{% endblock %}

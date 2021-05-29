@@ -1,0 +1,19 @@
+body {
+    background-color: #363636;
+    color: #c7c7c7;
+    font-size: 30pt;
+    height: 100%
+}
+
+#stat-box {
+    height: 100%;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    align-content: center;
+}
+
+.box {
+    width: 300px;
+    height: 300px;
+}
