@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for
 import subprocess
 import psutil
 
@@ -6,7 +6,6 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    free_space = subprocess.run(["df", "-h"], capture_output=True)
     return render_template("index.html")
 
 

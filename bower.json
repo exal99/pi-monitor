@@ -1,0 +1,19 @@
+{
+  "name": "pilogger",
+  "homepage": "https://github.com/exal99/pi-monitor",
+  "authors": [
+    "Alexander Simko <alexander.ch.simko@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "static/bower_components",
+    "test",
+    "tests"
+  ]
+}

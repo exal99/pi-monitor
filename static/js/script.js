@@ -1,3 +1,7 @@
+import * as adminlte from 'admin-lte';
+/*import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);
+
 const BACKGROUND_COLOR = "#363636";
 const FONT_COLOR = "#FEFEFE";
 const COLORS = ["#BC6C25", "#708B75", "#DDA15E", ]
@@ -111,4 +115,4 @@ const updateFunctions = [
 ]
 
 updateData(updateFunctions);
-setInterval(updateData, 2000, updateFunctions);
+setInterval(updateData, 2000, updateFunctions);*/
