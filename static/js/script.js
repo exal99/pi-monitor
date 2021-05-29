@@ -179,4 +179,5 @@ const updateFunctions = [
     (data) => updateTextElements(data),
 ]
 updateData(updateFunctions);
-//setInterval(updateData, 2000, updateFunctions);
+setInterval(updateData, 1000, updateFunctions, "/stats/cpu");
+setInterval(updateData, 1000 * 60 * 10, updateFunctions, "/stats/storage");
