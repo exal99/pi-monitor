@@ -52,7 +52,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <!-- Brand Logo -->
     <a href="/" class="brand-link">
       <img src="{{ url_for('static', filename='img/pilogo.png') }}" alt="Raspberry Pi logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-      <span class="brand-text font-weight-light">Raspberry Pi<br/> Control Panel</span>
+      <span class="brand-text text-sm font-weight-light">Raspberry Pi Control Panel</span>
     </a>
 
     <!-- Sidebar -->
@@ -115,64 +115,97 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <!-- Main content -->
     <div class="content">
       <div class="container-fluid">
-        <div class="row">
-          <div class="col-lg-6">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">Card title</h5>
-
-                <p class="card-text">
-                  Some quick example text to build on the card title and make up the bulk of the card's
-                  content.
-                </p>
-
-                <a href="#" class="card-link">Card link</a>
-                <a href="#" class="card-link">Another link</a>
-              </div>
+        <div class="row row-cols-5">
+            <div class="col">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3 id="cpu-usage">- %</h3>
+                        <p>CPU Usage</p>
+                        <div class="progress">
+                          <div class="progress-bar" id="cpu-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="icon">
+                      <i class="fas fa-microchip"></i>
+                    </div>
+                    <div class="overlay dark small-box-loading">
+                      <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                    </div>
+                </div>
             </div>
-
-            <div class="card card-primary card-outline">
-              <div class="card-body">
-                <h5 class="card-title">Card title</h5>
-
-                <p class="card-text">
-                  Some quick example text to build on the card title and make up the bulk of the card's
-                  content.
-                </p>
-                <a href="#" class="card-link">Card link</a>
-                <a href="#" class="card-link">Another link</a>
+            <div class="col">
+              <div class="small-box bg-info">
+                  <div class="inner">
+                      <h3 id="ram-usage">- %</h3>
+                      <p>RAM Usage</p>
+                      <div class="progress">
+                        <div class="progress-bar" id="ram-progress" style="width: 0%"></div>
+                      </div>
+                  </div>
+                  <div class="icon">
+                    <i class="fas fa-memory"></i>
+                  </div>
+                  <div class="overlay dark small-box-loading">
+                    <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                  </div>
               </div>
-            </div><!-- /.card -->
           </div>
-          <!-- /.col-md-6 -->
-          <div class="col-lg-6">
-            <div class="card">
-              <div class="card-header">
-                <h5 class="m-0">Featured</h5>
-              </div>
-              <div class="card-body">
-                <h6 class="card-title">Special title treatment</h6>
-
-                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                <a href="#" class="btn btn-primary">Go somewhere</a>
-              </div>
-            </div>
-
-            <div class="card card-primary card-outline">
-              <div class="card-header">
-                <h5 class="m-0">Featured</h5>
-              </div>
-              <div class="card-body">
-                <h6 class="card-title">Special title treatment</h6>
-
-                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                <a href="#" class="btn btn-primary">Go somewhere</a>
+            <div class="col">
+              <div class="small-box bg-info">
+                  <div class="inner">
+                      <h3 id="cpu-temp">- &deg;</h3>
+                      <p>CPU Temperature</p>
+                      <div class="progress">
+                        <div class="progress-bar" id="temp-progress" style="width: 0%;"></div>
+                      </div>
+                  </div>
+                  <div class="icon">
+                    <i class="fas fa-thermometer-three-quarters"></i>
+                  </div>
+                  <div class="overlay dark small-box-loading">
+                    <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                  </div>
               </div>
             </div>
-          </div>
-          <!-- /.col-md-6 -->
+            <div class="col">
+              <div class="small-box bg-info">
+                  <div class="inner">
+                      <h3 id="disk-free">- TB</h3>
+                      <p>Disk Space Free</p>
+                      <div class="progress">
+                        <div class="progress-bar" id="disk-progress" style="width: 0%"></div>
+                      </div>
+                  </div>
+                  <div class="icon">
+                    <i class="fas fa-hdd"></i>
+                  </div>
+                  <div class="overlay dark small-box-loading">
+                    <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                  </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="small-box bg-info">
+                  <div class="inner">
+                      <h3 id="sd-free">- GB</h3>
+                      <p>SD-Card Space Free</p>
+                      <div class="progress">
+                        <div class="progress-bar" id="sd-progress" style="width: 0%"></div>
+                      </div>
+                      <!--<span class="progress-description">
+                        70% Increase in 30 Days
+                      </span>-->
+                  </div>
+                  <div class="icon">
+                    <i class="fas fa-sd-card"></i>
+                  </div>
+                  <div class="overlay dark small-box-loading">
+                    <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                  </div>
+              </div>
+            </div>
+            
         </div>
-        <!-- /.row -->
       </div><!-- /.container-fluid -->
     </div>
     <!-- /.content -->

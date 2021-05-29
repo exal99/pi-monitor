@@ -11,9 +11,14 @@ def index():
 
 def get_system_stats():
     return {
-        "cpu_temp": psutil.sensors_temperatures()["cpu_thermal"][0].current,
         "hdd": psutil.disk_usage("/mnt/disk")._asdict(),
         "sd": psutil.disk_usage("/")._asdict(),
+        **get_cpu_stats()
+    }
+
+def get_cpu_stats():
+    return {
+        "cpu_temp": psutil.sensors_temperatures()["cpu_thermal"][0].current,
         "cpu_usage": psutil.cpu_percent(percpu=True),
         "ram": psutil.virtual_memory()._asdict()
     }
@@ -21,3 +26,7 @@ def get_system_stats():
 @app.route("/stats")
 def stats():
     return get_system_stats()
+
+@app.route("/stats/cpu")
+def cpu_stats():
+    return get_cpu_stats()
