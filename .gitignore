@@ -4,3 +4,4 @@ venv/*
 static/node_modules/*
 static/bower_components/*
 static/dist/*
+data_log.bin
