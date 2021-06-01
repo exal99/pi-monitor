@@ -117,6 +117,8 @@ const updateFunctions = [
 ]
 */
 
+const zip = (a,b) => a.map((k, i) => [k, b[i]]);
+
 function round(num, precision = 0) {
     return Math.floor(num * Math.pow(10, precision) + 0.5)/Math.pow(10, precision);
 }
@@ -149,7 +151,19 @@ function updateTextElements(data) {
         "cpu_usage": [(x) => `${round(x.reduce((a,b) => a + b, 0) / x.length, 1)} %`, "#cpu-usage"],
         "ram": [(x) => `${x.percent} %`, "#ram-usage"],
         "hdd": [(x) => autoConvertBytes(x.free).join(" "), "#disk-free"],
-        "sd": [(x) => autoConvertBytes(x.free).join(" "), "#sd-free"]
+        "sd": [(x) => autoConvertBytes(x.free).join(" "), "#sd-free"],
+        "uptime": [(x) => {
+            const units = ["y", "d", "h", "m"];
+            let striped = x.join(",").replace(/^(0,)+/g, '').split(',');
+
+            let ret = [];
+            for (const [time, unit] of zip(striped.reverse(), units.reverse())) {
+                ret.push(time + unit);
+            }
+
+            return ret.reverse().join(":");
+
+        }, "#uptime"]
     }
 
     const dataToProgress = {
@@ -181,3 +195,4 @@ const updateFunctions = [
 updateData(updateFunctions);
 setInterval(updateData, 1000, updateFunctions, "/stats/cpu");
 setInterval(updateData, 1000 * 60 * 10, updateFunctions, "/stats/storage");
+setInterval(updateData, 1000 * 60, updateFunctions, "/stats/uptime");
