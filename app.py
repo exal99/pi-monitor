@@ -9,7 +9,7 @@ import pickle
 import os
 
 
-DataPoint = namedtuple("DataPoint", ['cpu_temp', 'cpu_usage', 'ram_usage'])
+DataPoint = namedtuple("DataPoint", ['time', 'cpu_temp', 'cpu_usage', 'ram_usage'])
 
 app = Flask(__name__)
 scheduler = APScheduler()
@@ -17,7 +17,7 @@ scheduler.api_enabled = True
 scheduler.init_app(app)
 
 
-data_log = {}
+data_log = []
 MEMORY_LOG_SIZE: int = 60
 MAX_FILE_RECORD_SIZE: int = 10080
 LOG_FILE: str = 'data_log.bin'
@@ -29,12 +29,12 @@ def monitor() -> None:
     cpu_usage: float = sum(stats["cpu_usage"])/len(stats["cpu_usage"])
     ram_usage: int = stats["ram"]["available"]
     timestamp = datetime.datetime.now().timestamp() * 1000
-    data_log[timestamp] = DataPoint(cpu_temp=cpu_temp, cpu_usage=cpu_usage, ram_usage=ram_usage)
+    data_log.append(DataPoint(time=timestamp, cpu_temp=cpu_temp, cpu_usage=cpu_usage, ram_usage=ram_usage))
 
     if len(data_log) > MEMORY_LOG_SIZE:
         dump_data()
 
-def get_stored_data(file: IO[bytes]) -> dict:
+def get_stored_data(file: IO[bytes]) -> list:
     try:
         return pickle.load(file)
     except EOFError:
@@ -48,11 +48,11 @@ def move_log() -> None:
 def dump_data() -> None:
     open(LOG_FILE, 'a').close()
     with open(LOG_FILE, 'rb') as log_file, open(LOG_FILE + ".tmp", "wb") as log_file_write:
-        prev_data: dict = get_stored_data(log_file)
+        prev_data: list = get_stored_data(log_file)
         if (len_sum := len(prev_data)) > MAX_FILE_RECORD_SIZE:
             prev_data.clear()
             move_log()
-        prev_data.update(data_log)
+        prev_data = [*prev_data, *map(lambda x: x._asdict(), data_log)]
         pickle.dump(prev_data, log_file_write, pickle.HIGHEST_PROTOCOL)
         os.rename(LOG_FILE + ".tmp", LOG_FILE)
         data_log.clear()
@@ -62,7 +62,7 @@ scheduler.start()
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("base.html")
 
 
 def get_system_stats() -> dict:
@@ -98,8 +98,8 @@ def get_uptime() -> dict:
 def get_history() -> dict:
     with open(LOG_FILE, 'rb') as log_file:
         file_data: dict = get_stored_data(log_file)
-        file_data.update(data_log)
-        return file_data
+        file_data = [*file_data, *map(lambda x: x._asdict(), data_log)]
+        return {"data": file_data}
 
 
 @app.route("/stats")
