@@ -47,7 +47,6 @@ function areaChartOption(datasetName, ylabel, yticksFormatter, tooltipFormatter)
                 
                 time: {
                     isoWeekday: true,
-                    //minUnit: 'minutes',
                     tooltipFormat: 'yyyy-MM-dd HH:mm',
                     displayFormats: {
                         hour: 'HH:mm',
@@ -80,7 +79,7 @@ function areaChartOption(datasetName, ylabel, yticksFormatter, tooltipFormatter)
             },
             tooltip: {
                 callbacks: {
-                    label: (item) => `${item.label}: ${tooltipFormatter(item)}`
+                    label: (item) => `${item.dataset.label}: ${tooltipFormatter(item)}`
                 }
             }
         }
@@ -117,15 +116,14 @@ function createAreaChart(canvas, datasetName, data, ylabel, yticksFormatter=(val
     });
 }
 
-function createStreamingOptions(onRefresh, ymax) {
+function createStreamingOptions(ymax, formatter) {
     return {
         scales: {
             x: {
                 type: 'realtime',
                 realtime: {
-                    onRefresh: onRefresh,
                     delay: 2000,
-                    duration: 20000,
+                    duration: 60 * 1000,
                 },
                 time: {
                     isoWeekday: true,
@@ -146,7 +144,8 @@ function createStreamingOptions(onRefresh, ymax) {
                 max: ymax,
                 beginAtZero: true,
                 ticks: {
-                    color: "rgba(200,200,200,0.8)"
+                    color: "rgba(200,200,200,0.8)",
+                    callback: (value, item, index) => formatter(value),
                 },
                 grid: {
                     color: "rgba(200,200,200,0.6)"
@@ -159,19 +158,25 @@ function createStreamingOptions(onRefresh, ymax) {
             legend: {
                 display: false
             },
+            tooltip: {
+                callbacks: {
+                    label: (item) => `${item.dataset.label}: ${formatter(item.parsed.y)}`
+                }
+            }
         }
     }
 }
 
-function createStreamingChart(canvas, dataSetName, ymax, onRefresh) {
+function createStreamingChart(canvas, dataSetName, ymax, formatter = (x) => x) {
     return new Chart(canvas, {
         type: 'line',
         data: {
             datasets: [{
                 data: [],
-                backgroundColor: 'rgba(60,141,188,0.9)',
+                label: dataSetName,
+                backgroundColor: 'rgba(60,141,188,0.5)',
                 borderColor: 'rgba(60,141,188,0.8)',
-                //pointRadius: false,
+                pointRadius: false,
                 pointColor: '#3b8bba',
                 pointStrokeColor: 'rgba(60,141,188,1)',
                 pointHighlightFill: '#fff',
@@ -180,7 +185,7 @@ function createStreamingChart(canvas, dataSetName, ymax, onRefresh) {
                 tension: 0.2,
             }],
         },
-        options: createStreamingOptions(onRefresh, ymax),
+        options: createStreamingOptions(ymax, formatter),
     });
 
 }
@@ -260,9 +265,9 @@ function updateCores(data) {
     }
 }
 
-function updateCPUStreamChart(data, chart) {
-    if ("cpu_usage" in data) {
-        chart.data.datasets[0].data.push({x: Date.now(), y: round(data.cpu_usage.reduce((a,b) => a+b, 0)/data.cpu_usage.length, 1)})
+function updateStream(data, chart, field, formatter) {
+    if (field in data) {
+        chart.data.datasets[0].data.push({x: Date.now(), y: formatter(data[field])});
         chart.update('quiet');
     }
 }
@@ -270,7 +275,9 @@ function updateCPUStreamChart(data, chart) {
 const updateFunctions = [
     (data) => updateTextElements(data),
     (data) => updateCores(data),
-    (data) => updateCPUStreamChart(data, cpuStreamChart)
+    (data) => updateStream(data, cpuStreamChart, 'cpu_usage', cores => round(cores.reduce((a,b) => a+b, 0)/cores.length, 1)),
+    (data) => updateStream(data, ramStreamChart, 'ram', ram => ram.used),
+    (data) => updateStream(data, tempStreamChart, 'cpu_temp', temp => round(temp, 1))
 ]
 updateData(updateFunctions);
 setInterval(updateData, 1000, updateFunctions, "/stats/cpu");
@@ -279,10 +286,19 @@ setInterval(updateData, 1000 * 60, updateFunctions, "/stats/uptime");
 
 const ramCanvas = $("#ram-history-chart");
 const cpuCanvas = $("#cpu-history-chart");
-const cpuStreamCanvas = $("#cpu-stream-chart");
-const cpuStreamChart = createStreamingChart(cpuStreamCanvas, "CPU Utilisation", 100, undefined)
 
-cpuStreamCanvas.data('chart', cpuStreamChart)
+const cpuStreamCanvas = $("#cpu-stream-chart");
+const ramStreamCanvas = $("#ram-stream-chart");
+const tempStreamCanvas = $("#temp-stream-chart");
+
+const cpuStreamChart = createStreamingChart(cpuStreamCanvas, "CPU Utilisation", 100, x => x + ' %');
+const ramStreamChart = createStreamingChart(ramStreamCanvas, "Memory Usage",4000000000, x => convertPrefix(x, 9, 1) + " GB");
+const tempStreamChart = createStreamingChart(tempStreamCanvas, "CPU Temperature", undefined, x => x + ' °C')
+
+
+cpuStreamCanvas.data('chart', cpuStreamChart);
+ramStreamCanvas.data('chart', ramStreamChart);
+tempStreamCanvas.data('chart', tempStreamChart);
 
 
 const chartCreaters = [
@@ -300,14 +316,18 @@ fetch("/history")
 
 
 $(".btn-play").on('click', (event) => {
-    let chart = $('#' + event.currentTarget.dataset.chartId).data('chart');
-    chart.options.plugins.streaming.pause = false;
-    chart.update()
-    $('.btn-' + event.currentTarget.dataset.chartId).toggle()
+    $(event.currentTarget.dataset.chartId).map( (i, canvas) => {
+        let chart = $(canvas).data('chart');
+        chart.options.plugins.streaming.pause = false;
+        chart.update();
+    });
+    $('.btn-' + event.currentTarget.dataset.chartId.slice(1)).toggle()
 });
 $(".btn-pause").on('click', (event) => {
-    let chart = $('#' + event.currentTarget.dataset.chartId).data('chart');
-    chart.options.plugins.streaming.pause = true;
-    chart.update()
-    $('.btn-' + event.currentTarget.dataset.chartId).toggle()
+    $(event.currentTarget.dataset.chartId).map((i, canvas) => {
+        let chart = $(canvas).data('chart');
+        chart.options.plugins.streaming.pause = true;
+        chart.update();
+    });
+    $('.btn-' + event.currentTarget.dataset.chartId.slice(1)).toggle()
 });
