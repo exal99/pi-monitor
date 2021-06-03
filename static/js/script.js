@@ -1,4 +1,4 @@
-import * as adminlte from 'admin-lte';
+import 'admin-lte';
 import $ from 'jquery';
 
 import { Chart, Filler, registerables } from 'chart.js';

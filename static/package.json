@@ -5,9 +5,9 @@
   "main": "js/script.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --mode=production --progress --config webpack.config.js",
-    "dev-build": "webpack --progress --mode=development --config webpack.config.js",
-    "watch": "webpack --progress --mode=development --config webpack.config.js --watch"
+    "build": "webpack --mode=production --progress --config webpack.prod.js",
+    "dev-build": "webpack --progress --mode=development --config webpack.dev.js",
+    "watch": "webpack --progress --mode=development --config webpack.dev.js --watch"
   },
   "repository": {
     "type": "git",
@@ -37,6 +37,7 @@
     "chartjs-adapter-date-fns": "^1.1.0-beta.1",
     "chartjs-plugin-streaming": "^2.0.0-beta.3",
     "date-fns": "^2.22.1",
-    "jquery": "^3.6.0"
+    "jquery": "^3.6.0",
+    "webpack-merge": "^5.7.3"
   }
 }
