@@ -3,103 +3,10 @@ import $ from 'jquery';
 
 import { Chart, Filler, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
+import ChartStreaming from 'chartjs-plugin-streaming';
 Chart.register(...registerables);
-/*
-const BACKGROUND_COLOR = "#363636";
-const FONT_COLOR = "#FEFEFE";
-const COLORS = ["#BC6C25", "#708B75", "#DDA15E", ]
-function piChartOptions(deg_cutout, title) {
-    return {
-        circumference: 360 - deg_cutout,
-        rotation: -180 + deg_cutout/2,
-        plugins: {
-            tooltip: {
-                callbacks: {
-                    label: (item) => `${item.label}: ${autoConvertBytes(item.raw).join(" ")}`
-                }
-            },
-            title:{
-                display: true,
-                text: title,
-                color: FONT_COLOR
-            },
-            legend: {
-                labels:{
-                    color: FONT_COLOR
-                }
-            }
-        },
-        
-    }
-}
+Chart.register(ChartStreaming)
 
-function round(num, precision = 0) {
-    return Math.floor(num * Math.pow(10, precision) + 0.5)/Math.pow(10, precision);
-}
-
-function convertPrefix(num, prefix, precision = 0) {
-    return round(round(num, -(prefix - precision)) / Math.pow(10, prefix), precision);
-}
-
-function autoConvertBytes(bytes) {
-    const prefixes = [[12, "TB"], [9, "GB"], [6, "MB"], [3, "KB"]];
-
-    for (const prefix of prefixes) {
-        if (bytes > Math.pow(10, prefix[0])) {
-            return [convertPrefix(bytes, prefix[0], 2), prefix[1]];
-        }
-    }
-
-    return [bytes, "bytes"];
-}
-
-function updateRAMChart(chart, data) {
-    let used = data["ram"]["total"] - data["ram"]["available"];
-    let available = data["ram"]["available"];
-    chart.data.datasets[0].data = [used, available];
-
-    chart.update()
-
-}
-
-function updateDiskSpace(chart, data) {
-    chart.data.datasets[0].data = [data["hdd"]["used"], data["hdd"]["free"]];
-    chart.update()
-}
-
-
-function updateSdSpace(chart, data) {
-    chart.data.datasets[0].data = [data["sd"]["used"], data["sd"]["free"]];
-    chart.update()
-}
-
-function updateData(updateFunctions) {
-    fetch("/stats")
-        .then(response => response.json())
-        .then(data => updateFunctions.forEach(func => func(data)));
-}
-
-let ramCanvas  = document.getElementById("ramChart");
-let diskCanvas = document.getElementById("diskChart");
-let sdCanvas   = document.getElementById("sdChart");
-
-let ramChart  = makePiChart(ramCanvas,  "RAM Usage");
-let diskChart = makePiChart(diskCanvas, "HDD Space");
-let sdChart   = makePiChart(sdCanvas,   "SD-Card Space");
-
-ramChart.data.labels = ["Used", "Available"];
-ramChart.data.datasets[0].backgroundColor = [COLORS[0], COLORS[1]];
-diskChart.data.labels = ["Used", "Available"];
-diskChart.data.datasets[0].backgroundColor = [COLORS[0], COLORS[1]];
-sdChart.data.labels = ["Used", "Available"];
-sdChart.data.datasets[0].backgroundColor = [COLORS[0], COLORS[1]];
-
-const updateFunctions = [
-    (data) => updateRAMChart(ramChart, data),
-    (data) => updateDiskSpace(diskChart, data),
-    (data) => updateSdSpace(sdChart, data),
-]
-*/
 
 const zip = (a,b) => a.map((k, i) => [k, b[i]]);
 
@@ -210,6 +117,74 @@ function createAreaChart(canvas, datasetName, data, ylabel, yticksFormatter=(val
     });
 }
 
+function createStreamingOptions(onRefresh, ymax) {
+    return {
+        scales: {
+            x: {
+                type: 'realtime',
+                realtime: {
+                    onRefresh: onRefresh,
+                    delay: 2000,
+                    duration: 20000,
+                },
+                time: {
+                    isoWeekday: true,
+                    tooltipFormat: 'yyyy-MM-dd HH:mm',
+                    displayFormats: {
+                        hour: 'HH:mm',
+                        second: 'HH:mm ss'
+                    }
+                },
+                ticks: {
+                    color: "rgba(200,200,200,0.8)"
+                },
+                grid: {
+                    color: "rgba(200,200,200,0.6)"
+                }
+            },
+            y: {
+                max: ymax,
+                beginAtZero: true,
+                ticks: {
+                    color: "rgba(200,200,200,0.8)"
+                },
+                grid: {
+                    color: "rgba(200,200,200,0.6)"
+                }
+            }
+        },
+        maintainAspectRatio : false,
+        responsive : true,
+        plugins: {
+            legend: {
+                display: false
+            },
+        }
+    }
+}
+
+function createStreamingChart(canvas, dataSetName, ymax, onRefresh) {
+    return new Chart(canvas, {
+        type: 'line',
+        data: {
+            datasets: [{
+                data: [],
+                backgroundColor: 'rgba(60,141,188,0.9)',
+                borderColor: 'rgba(60,141,188,0.8)',
+                //pointRadius: false,
+                pointColor: '#3b8bba',
+                pointStrokeColor: 'rgba(60,141,188,1)',
+                pointHighlightFill: '#fff',
+                pointHighlightStroke: 'rgba(60,141,188,1)',
+                fill: true,
+                tension: 0.2,
+            }],
+        },
+        options: createStreamingOptions(onRefresh, ymax),
+    });
+
+}
+
 function updateData(updateFunctions, fetchUrl="/stats") {
     fetch(fetchUrl)
         .then(response => response.json())
@@ -285,9 +260,17 @@ function updateCores(data) {
     }
 }
 
+function updateCPUStreamChart(data, chart) {
+    if ("cpu_usage" in data) {
+        chart.data.datasets[0].data.push({x: Date.now(), y: round(data.cpu_usage.reduce((a,b) => a+b, 0)/data.cpu_usage.length, 1)})
+        chart.update('quiet');
+    }
+}
+
 const updateFunctions = [
     (data) => updateTextElements(data),
-    (data) => updateCores(data)
+    (data) => updateCores(data),
+    (data) => updateCPUStreamChart(data, cpuStreamChart)
 ]
 updateData(updateFunctions);
 setInterval(updateData, 1000, updateFunctions, "/stats/cpu");
@@ -296,6 +279,11 @@ setInterval(updateData, 1000 * 60, updateFunctions, "/stats/uptime");
 
 const ramCanvas = $("#ram-history-chart");
 const cpuCanvas = $("#cpu-history-chart");
+const cpuStreamCanvas = $("#cpu-stream-chart");
+const cpuStreamChart = createStreamingChart(cpuStreamCanvas, "CPU Utilisation", 100, undefined)
+
+cpuStreamCanvas.data('chart', cpuStreamChart)
+
 
 const chartCreaters = [
     data => createAreaChart(ramCanvas, "RAM Usage History", data.data, 'ram_usage',
@@ -309,3 +297,17 @@ const chartCreaters = [
 fetch("/history")
     .then((response) => response.json())
     .then(data => chartCreaters.forEach(creater => creater(data)));
+
+
+$(".btn-play").on('click', (event) => {
+    let chart = $('#' + event.currentTarget.dataset.chartId).data('chart');
+    chart.options.plugins.streaming.pause = false;
+    chart.update()
+    $('.btn-' + event.currentTarget.dataset.chartId).toggle()
+});
+$(".btn-pause").on('click', (event) => {
+    let chart = $('#' + event.currentTarget.dataset.chartId).data('chart');
+    chart.options.plugins.streaming.pause = true;
+    chart.update()
+    $('.btn-' + event.currentTarget.dataset.chartId).toggle()
+});
