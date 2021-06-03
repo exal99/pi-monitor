@@ -153,9 +153,11 @@ function areaChartOption(datasetName, ylabel, yticksFormatter, tooltipFormatter)
                 }
             },
             y: {
+                type: 'linear',
+                beginAtZero: true,
                 ticks: {
                     color: "rgba(200,200,200,0.8)",
-                    callback: yticksFormatter
+                    callback: yticksFormatter,
                 },
 
                 grid: {
@@ -273,11 +275,13 @@ function updateTextElements(data) {
 }
 
 function updateCores(data) {
-    let cores = data.cpu_usage;
+    if ('cpu_usage' in data) {
+        let cores = data.cpu_usage;
 
-    for (const [i, core] of cores.entries()) {
-        $(`#cpu-${i + 1}`).html(`${core} %`);
-        $(`#cpu-${i + 1}-bar`).css('width', `${round(core)}%`)
+        for (const [i, core] of cores.entries()) {
+            $(`#cpu-${i + 1}`).html(`${core} %`);
+            $(`#cpu-${i + 1}-bar`).css('width', `${round(core)}%`)
+        }
     }
 }
 
@@ -295,7 +299,7 @@ const cpuCanvas = $("#cpu-history-chart");
 
 const chartCreaters = [
     data => createAreaChart(ramCanvas, "RAM Usage History", data.data, 'ram_usage',
-                           (value, index, ticks) => autoConvertBytes(value).join(' '),
+                           (value, index, ticks) => `${convertPrefix(value, 9, 2)} GB`,
                            (item) => autoConvertBytes(item.parsed.y).join(' ')),
     data => createAreaChart(cpuCanvas, "CPU Usage History", data.data, 'cpu_usage',
                            (value, index, ticks) => value + " %",
