@@ -143,7 +143,7 @@ function areaChartOption(datasetName, ylabel, yticksFormatter, tooltipFormatter)
                     //minUnit: 'minutes',
                     tooltipFormat: 'yyyy-MM-dd HH:mm',
                     displayFormats: {
-                        minute: 'HH:mm',
+                        hour: 'HH:mm',
 
                     }
                 },
@@ -269,10 +269,21 @@ function updateTextElements(data) {
     }
 
     $(".small-box-loading").hide()
+    $(".card-loading").hide()
+}
+
+function updateCores(data) {
+    let cores = data.cpu_usage;
+
+    for (const [i, core] of cores.entries()) {
+        $(`#cpu-${i + 1}`).html(`${core} %`);
+        $(`#cpu-${i + 1}-bar`).css('width', `${round(core)}%`)
+    }
 }
 
 const updateFunctions = [
     (data) => updateTextElements(data),
+    (data) => updateCores(data)
 ]
 updateData(updateFunctions);
 setInterval(updateData, 1000, updateFunctions, "/stats/cpu");
