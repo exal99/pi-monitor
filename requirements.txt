@@ -1,6 +1,6 @@
 APScheduler==3.7.0
 click==8.0.1
-Flask==2.0.1
+Flask==2.3.2
 Flask-APScheduler==1.12.2
 itsdangerous==2.0.1
 Jinja2==3.0.1
